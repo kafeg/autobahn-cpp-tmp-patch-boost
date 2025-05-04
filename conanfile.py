@@ -5,7 +5,7 @@ from conan.tools.files import copy
 
 class autobahn_cppConan(ConanFile):
     name = "autobahn-cpp"
-    version = "21.0.0"
+    version = "21.0.1"
     license = "Boost Software License - Version 1.0 - August 17th, 2003"
     author = "Crossbar.io Technologies GmbH and contributors"
     description = "WAMP for C++ on Boost/ASIO"

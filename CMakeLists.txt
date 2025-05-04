@@ -94,6 +94,9 @@ set(PUBLIC_HEADERS
 
 add_library(autobahn_cpp INTERFACE)
 
+target_compile_definitions(autobahn_cpp INTERFACE
+    OPENSSL_API_COMPAT=0x10100000L)
+
 target_include_directories(autobahn_cpp INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${Boost_INCLUDE_DIRS}
