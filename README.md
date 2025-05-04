@@ -122,6 +122,25 @@ cd autobahn-cpp
 cp -r autobahn/ /usr/local/include/
 ```
 
+Creating Conan 2 package:
+```shell
+conan create .
+```
+By default the examples will be built during the package creation, except the cryptosign/Botan ones. To build them too:
+```shell
+conan create . --conf=tools.build:use_botan=True
+```
+To skip building examples:
+```shell
+conan create . --conf=tools.build:skip_examples=True
+```
+
+Once package is created, add a dependency to your `conanfile.py`:
+```python
+def requirements(self):
+    self.requires("autobahn-cpp/21.0.0")
+```
+
 ---
 
 

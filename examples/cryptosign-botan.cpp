@@ -74,7 +74,7 @@ public:
   {
   }
 
-  boost::future<autobahn::wamp_authenticate> on_challenge(const autobahn::wamp_challenge& challenge)
+  boost::future<autobahn::wamp_authenticate> on_challenge(const autobahn::wamp_challenge& challenge) override
   {
     Botan::AutoSeeded_RNG rng;
     Botan::PK_Signer signer(m_private_key, rng, "Pure");
