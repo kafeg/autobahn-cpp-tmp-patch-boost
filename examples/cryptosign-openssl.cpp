@@ -69,12 +69,12 @@ public:
       m_private_key = EVP_PKEY_new_raw_private_key( EVP_PKEY_ED25519, nullptr, (const unsigned char *)private_key.data(), private_key.size());
   }
 
-  virtual ~auth_wamp_session()
+  ~auth_wamp_session() override
   {
      EVP_PKEY_free(m_private_key);
   }
 
-  boost::future<autobahn::wamp_authenticate> on_challenge(const autobahn::wamp_challenge& _challenge)
+  boost::future<autobahn::wamp_authenticate> on_challenge(const autobahn::wamp_challenge& _challenge) override
   {
       size_t sig_len = 64;
       unsigned char sig[64];

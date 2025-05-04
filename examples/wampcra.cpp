@@ -72,7 +72,7 @@ public:
     {
     }
 
-    boost::future<autobahn::wamp_authenticate> on_challenge(const autobahn::wamp_challenge& challenge)
+    boost::future<autobahn::wamp_authenticate> on_challenge(const autobahn::wamp_challenge& challenge) override
     {
         std::cerr << "responding to auth challenge: " << challenge.challenge() << std::endl;
         std::string signature = compute_wcs(m_secret, challenge.challenge());
@@ -151,7 +151,7 @@ int main(int argc, char** argv)
                                 return;
                             }
 
-                            stop_future = session->stop().then([&](boost::future<void> stopped) {
+                            stop_future = session->stop().then([&](boost::future<void>) {
                                 std::cerr << "stopped session" << std::endl;
                                 io.stop();
                             });

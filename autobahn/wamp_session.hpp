@@ -103,7 +103,7 @@ public:
             boost::asio::io_service& io_service,
             bool debug_enabled = false);
 
-    ~wamp_session();
+    ~wamp_session() override;
 
     /*!
      * Establishes a session with the router.

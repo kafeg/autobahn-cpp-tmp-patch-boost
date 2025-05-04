@@ -121,7 +121,7 @@ int main(int argc, char** argv)
                                 return;
                             }
 
-                            stop_future = session->stop().then([&](boost::future<void> stopped) {
+                            stop_future = session->stop().then([&](boost::future<void>) {
                                 std::cerr << "stopped session" << std::endl;
                                 io.stop();
                             });

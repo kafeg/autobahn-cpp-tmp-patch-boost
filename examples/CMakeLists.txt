@@ -7,9 +7,27 @@ target_include_directories(examples_parameters PUBLIC ${Boost_INCLUDE_DIRS})
 target_link_libraries(examples_parameters PRIVATE ${Boost_LIBRARIES})
 target_compile_definitions(examples_parameters PRIVATE ${Boost_DEFINITIONS})
 
+set(STRICT_COMPILE_OPTIONS
+    -Werror
+    -Wall
+    -Wextra
+    -Wpedantic
+    -Wdeprecated-dynamic-exception-spec
+    -Wextra-semi
+    -Winconsistent-missing-destructor-override
+    -Winconsistent-missing-override
+    -Wshadow
+    -Wshorten-64-to-32
+    -Wsign-compare
+    -Wsign-conversion
+    -Wsuggest-override
+    -Wunused
+)
+
 function(make_example name src)
     add_executable(${name} ${src} ${PUBLIC_HEADERS})
     target_link_libraries(${name} examples_parameters autobahn_cpp)
+    target_compile_options(${name} PRIVATE ${STRICT_COMPILE_OPTIONS})
 endfunction()
 
 make_example(caller caller.cpp)

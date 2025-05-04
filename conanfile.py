@@ -2,10 +2,11 @@ from conan import ConanFile
 from conan.tools.build import check_min_cppstd
 from conan.tools.cmake import cmake_layout, CMake
 from conan.tools.files import copy
+import os
 
 class autobahn_cppConan(ConanFile):
     name = "autobahn-cpp"
-    version = "21.0.1"
+    version = "21.0.2"
     license = "Boost Software License - Version 1.0 - August 17th, 2003"
     author = "Crossbar.io Technologies GmbH and contributors"
     description = "WAMP for C++ on Boost/ASIO"
@@ -45,8 +46,8 @@ class autobahn_cppConan(ConanFile):
             cmake.build()
 
     def package(self):
-        copy(self, "*.hpp", self.source_folder, self.package_folder, excludes=["examples"])
-        copy(self, "*.ipp", self.source_folder, self.package_folder, excludes=["examples"])
+        copy(self, "*.hpp", self.source_folder, os.path.join(self.package_folder, "include"), excludes=["examples"])
+        copy(self, "*.ipp", self.source_folder, os.path.join(self.package_folder, "include"), excludes=["examples"])
 
     def package_id(self):
         self.info.clear()

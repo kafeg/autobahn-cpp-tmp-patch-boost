@@ -43,7 +43,7 @@
 //
 class derived_key_error : public std::exception
 {
-  virtual const char* what() const throw()
+  const char* what() const noexcept override
   {
     return "Error occured when calulcate a derived key";
   }
@@ -83,10 +83,10 @@ inline std::string base_64_encode(const std::string & data )
 
     BIO_write(bio, (const unsigned char *) data.c_str(), (int) data.size());
     (void)BIO_flush(bio);
-    
+
     BIO_get_mem_ptr(bio, &pBuf);
     (void)BIO_set_close(bio, BIO_NOCLOSE);
-    
+
     std::string str_out;
     str_out.assign( pBuf->data, pBuf->length );
 
@@ -120,7 +120,7 @@ inline std::string derive_key(
     unsigned char * salt_value = (unsigned char * ) salt.c_str();
 
     std::string str_out;
-    str_out.resize( keylen );
+    str_out.resize( static_cast<size_t>(keylen) );
 
 
     unsigned char * out = (unsigned char *) str_out.c_str();
@@ -204,7 +204,7 @@ inline std::string generate_wcs(int length=14){
 
     std::string s;
     for (int i = 0; i < length; ++i) {
-        s.push_back( WCS_SECRET_CHARSET[ rand() % (sizeof(WCS_SECRET_CHARSET) - 1) ] );
+        s.push_back( WCS_SECRET_CHARSET[ static_cast<size_t>(rand()) % (sizeof(WCS_SECRET_CHARSET) - 1) ] );
     }
 
     return s;
