@@ -34,7 +34,7 @@
 #include "boost_config.hpp"
 #include "wamp_transport.hpp"
 
-#include <boost/asio/io_service.hpp>
+#include <boost/asio/io_context.hpp>
 #include <cstddef>
 #include <memory>
 #include <msgpack.hpp>
@@ -187,7 +187,7 @@ namespace autobahn {
             * Whether or not debugging is enabled.
             */
             bool m_debug_enabled;
-            
+
             /*!
             * Websocket endpoint URI
             */
