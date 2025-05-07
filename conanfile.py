@@ -6,7 +6,7 @@ import os
 
 class autobahn_cppConan(ConanFile):
     name = "autobahn-cpp"
-    version = "21.0.2"
+    version = "22.0.0"
     license = "Boost Software License - Version 1.0 - August 17th, 2003"
     author = "Crossbar.io Technologies GmbH and contributors"
     description = "WAMP for C++ on Boost/ASIO"

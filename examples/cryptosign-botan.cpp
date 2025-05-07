@@ -59,7 +59,7 @@ void add2(autobahn::wamp_invocation invocation)
 }
 
 class auth_wamp_session :
-    public autobahn::wamp_session
+    public autobahn::wamp_session<boost::asio::io_context>
 {
 public:
   boost::promise<autobahn::wamp_authenticate> challenge_future;
@@ -69,7 +69,7 @@ public:
       boost::asio::io_context& io,
       bool debug_enabled,
       const Botan::secure_vector<uint8_t>& private_key) :
-        autobahn::wamp_session(io, debug_enabled),
+        autobahn::wamp_session<boost::asio::io_context>(io, debug_enabled),
         m_private_key(private_key)
   {
   }

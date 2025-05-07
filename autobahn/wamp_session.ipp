@@ -61,11 +61,12 @@
 
 namespace autobahn {
 
-inline wamp_session::wamp_session(
-        boost::asio::io_context& io_context,
+template <typename Executor>
+inline wamp_session<Executor>::wamp_session(
+        Executor& executor,
         bool debug_enabled)
     : m_debug_enabled(debug_enabled)
-    , m_io_context(io_context)
+    , m_executor(executor)
     , m_transport()
     , m_request_id(0)
     , m_session_id(0)
@@ -74,15 +75,17 @@ inline wamp_session::wamp_session(
 {
 }
 
-inline wamp_session::~wamp_session()
+template <typename Executor>
+inline wamp_session<Executor>::~wamp_session()
 {
 }
 
-inline boost::future<void> wamp_session::start()
+template <typename Executor>
+inline boost::future<void> wamp_session<Executor>::start()
 {
     auto weak_self = std::weak_ptr<wamp_session>(this->shared_from_this());
 
-    boost::asio::dispatch(m_io_context, [this, weak_self]() {
+    boost::asio::dispatch(m_executor, [this, weak_self]() {
         auto shared_self = weak_self.lock();
         if (!shared_self) {
             return;
@@ -105,11 +108,12 @@ inline boost::future<void> wamp_session::start()
     return m_session_start.get_future();
 }
 
-inline boost::future<void> wamp_session::stop()
+template <typename Executor>
+inline boost::future<void> wamp_session<Executor>::stop()
 {
     auto weak_self = std::weak_ptr<wamp_session>(this->shared_from_this());
 
-    boost::asio::dispatch(m_io_context, [this, weak_self]() {
+    boost::asio::dispatch(m_executor, [this, weak_self]() {
         auto shared_self = weak_self.lock();
         if (!shared_self) {
             return;
@@ -137,7 +141,8 @@ inline boost::future<void> wamp_session::stop()
     return m_session_stop.get_future();
 }
 
-inline boost::future<uint64_t> wamp_session::join(
+template <typename Executor>
+inline boost::future<uint64_t> wamp_session<Executor>::join(
         const std::string& realm,
         const std::vector<std::string>& authentication_methods,
         const std::string& authentication_id,
@@ -184,7 +189,7 @@ inline boost::future<uint64_t> wamp_session::join(
 
     auto weak_self = std::weak_ptr<wamp_session>(this->shared_from_this());
 
-    boost::asio::dispatch(m_io_context, [this, weak_self, message]() {
+    boost::asio::dispatch(m_executor, [this, weak_self, message]() {
         auto shared_self = weak_self.lock();
         if (!shared_self) {
             return;
@@ -205,7 +210,8 @@ inline boost::future<uint64_t> wamp_session::join(
     return m_session_join.get_future();
 }
 
-inline boost::future<std::string> wamp_session::leave(const std::string& reason)
+template <typename Executor>
+inline boost::future<std::string> wamp_session<Executor>::leave(const std::string& reason)
 {
     auto message = std::make_shared<wamp_message>(3);
     message->set_field(0, static_cast<int>(message_type::GOODBYE));
@@ -214,7 +220,7 @@ inline boost::future<std::string> wamp_session::leave(const std::string& reason)
 
     auto weak_self = std::weak_ptr<wamp_session>(this->shared_from_this());
 
-    boost::asio::dispatch(m_io_context, [this, weak_self, message]() {
+    boost::asio::dispatch(m_executor, [this, weak_self, message]() {
         auto shared_self = weak_self.lock();
         if (!shared_self) {
             return;
@@ -237,7 +243,8 @@ inline boost::future<std::string> wamp_session::leave(const std::string& reason)
     return m_session_leave.get_future();
 }
 
-inline boost::future<void> wamp_session::publish(const std::string& topic,const wamp_publish_options& options)
+template <typename Executor>
+inline boost::future<void> wamp_session<Executor>::publish(const std::string& topic,const wamp_publish_options& options)
 {
     uint64_t request_id = ++m_request_id;
 
@@ -250,7 +257,7 @@ inline boost::future<void> wamp_session::publish(const std::string& topic,const 
     auto result = std::make_shared<boost::promise<void>>();
     auto weak_self = std::weak_ptr<wamp_session>(this->shared_from_this());
 
-    boost::asio::dispatch(m_io_context, [this, weak_self, message, result]() {
+    boost::asio::dispatch(m_executor, [this, weak_self, message, result]() {
         auto shared_self = weak_self.lock();
         if (!shared_self) {
             return;
@@ -267,8 +274,9 @@ inline boost::future<void> wamp_session::publish(const std::string& topic,const 
     return result->get_future();
 }
 
+template <typename Executor>
 template <typename List>
-inline boost::future<void> wamp_session::publish(const std::string& topic, const List& arguments,const wamp_publish_options& options)
+inline boost::future<void> wamp_session<Executor>::publish(const std::string& topic, const List& arguments,const wamp_publish_options& options)
 {
     uint64_t request_id = ++m_request_id;
 
@@ -282,7 +290,7 @@ inline boost::future<void> wamp_session::publish(const std::string& topic, const
     auto result = std::make_shared<boost::promise<void>>();
     auto weak_self = std::weak_ptr<wamp_session>(this->shared_from_this());
 
-    boost::asio::dispatch(m_io_context, [this, weak_self, message, result]() {
+    boost::asio::dispatch(m_executor, [this, weak_self, message, result]() {
         auto shared_self = weak_self.lock();
         if (!shared_self) {
             return;
@@ -299,8 +307,9 @@ inline boost::future<void> wamp_session::publish(const std::string& topic, const
     return result->get_future();
 }
 
+template <typename Executor>
 template <typename List, typename Map>
-inline boost::future<void> wamp_session::publish(
+inline boost::future<void> wamp_session<Executor>::publish(
         const std::string& topic, const List& arguments, const Map& kw_arguments,const wamp_publish_options& options)
 {
     uint64_t request_id = ++m_request_id;
@@ -316,7 +325,7 @@ inline boost::future<void> wamp_session::publish(
     auto result = std::make_shared<boost::promise<void>>();
     auto weak_self = std::weak_ptr<wamp_session>(this->shared_from_this());
 
-    boost::asio::dispatch(m_io_context, [this, weak_self, message, result]() {
+    boost::asio::dispatch(m_executor, [this, weak_self, message, result]() {
         auto shared_self = weak_self.lock();
         if (!shared_self) {
             return;
@@ -333,7 +342,8 @@ inline boost::future<void> wamp_session::publish(
     return result->get_future();
 }
 
-inline boost::future<wamp_subscription> wamp_session::subscribe(
+template <typename Executor>
+inline boost::future<wamp_subscription> wamp_session<Executor>::subscribe(
         const std::string& topic,
         const wamp_event_handler& handler,
         const wamp_subscribe_options& options)
@@ -349,7 +359,7 @@ inline boost::future<wamp_subscription> wamp_session::subscribe(
     auto weak_self = std::weak_ptr<wamp_session>(this->shared_from_this());
     auto subscribe_request = std::make_shared<wamp_subscribe_request>(handler);
 
-    boost::asio::dispatch(m_io_context, [this, weak_self, message, request_id, subscribe_request]() {
+    boost::asio::dispatch(m_executor, [this, weak_self, message, request_id, subscribe_request]() {
         auto shared_self = weak_self.lock();
         if (!shared_self) {
             return;
@@ -366,7 +376,8 @@ inline boost::future<wamp_subscription> wamp_session::subscribe(
     return subscribe_request->response().get_future();
 }
 
-inline boost::future<void> wamp_session::unsubscribe(const wamp_subscription& subscription)
+template <typename Executor>
+inline boost::future<void> wamp_session<Executor>::unsubscribe(const wamp_subscription& subscription)
 {
     uint64_t request_id = ++m_request_id;
 
@@ -378,7 +389,7 @@ inline boost::future<void> wamp_session::unsubscribe(const wamp_subscription& su
     auto weak_self = std::weak_ptr<wamp_session>(this->shared_from_this());
     auto unsubscribe_request = std::make_shared<wamp_unsubscribe_request>(subscription);
 
-    boost::asio::dispatch(m_io_context, [this, weak_self, message, request_id, unsubscribe_request]() {
+    boost::asio::dispatch(m_executor, [this, weak_self, message, request_id, unsubscribe_request]() {
         auto shared_self = weak_self.lock();
         if (!shared_self) {
             return;
@@ -395,7 +406,8 @@ inline boost::future<void> wamp_session::unsubscribe(const wamp_subscription& su
     return unsubscribe_request->response().get_future();
 }
 
-inline boost::future<wamp_call_result> wamp_session::call(
+template <typename Executor>
+inline boost::future<wamp_call_result> wamp_session<Executor>::call(
         const std::string& procedure,
         const wamp_call_options& options)
 {
@@ -410,7 +422,7 @@ inline boost::future<wamp_call_result> wamp_session::call(
     auto weak_self = std::weak_ptr<wamp_session>(this->shared_from_this());
     auto call = std::make_shared<wamp_call>();
 
-    boost::asio::dispatch(m_io_context, [this, weak_self, message, request_id, call]() {
+    boost::asio::dispatch(m_executor, [this, weak_self, message, request_id, call]() {
         auto shared_self = weak_self.lock();
         if (!shared_self) {
             return;
@@ -427,8 +439,9 @@ inline boost::future<wamp_call_result> wamp_session::call(
     return call->result().get_future();
 }
 
+template <typename Executor>
 template<typename List>
-inline boost::future<wamp_call_result> wamp_session::call(
+inline boost::future<wamp_call_result> wamp_session<Executor>::call(
         const std::string& procedure,
         const List& arguments,
         const wamp_call_options& options)
@@ -445,7 +458,7 @@ inline boost::future<wamp_call_result> wamp_session::call(
     auto weak_self = std::weak_ptr<wamp_session>(this->shared_from_this());
     auto call = std::make_shared<wamp_call>();
 
-    boost::asio::dispatch(m_io_context, [this, weak_self, message, request_id, call]() {
+    boost::asio::dispatch(m_executor, [this, weak_self, message, request_id, call]() {
         auto shared_self = weak_self.lock();
         if (!shared_self) {
             return;
@@ -462,8 +475,9 @@ inline boost::future<wamp_call_result> wamp_session::call(
     return call->result().get_future();
 }
 
+template <typename Executor>
 template<typename List, typename Map>
-inline boost::future<wamp_call_result> wamp_session::call(
+inline boost::future<wamp_call_result> wamp_session<Executor>::call(
         const std::string& procedure,
         const List& arguments,
         const Map& kw_arguments,
@@ -482,7 +496,7 @@ inline boost::future<wamp_call_result> wamp_session::call(
     auto weak_self = std::weak_ptr<wamp_session>(this->shared_from_this());
     auto call = std::make_shared<wamp_call>();
 
-    boost::asio::dispatch(m_io_context, [this, weak_self, message, request_id, call]() {
+    boost::asio::dispatch(m_executor, [this, weak_self, message, request_id, call]() {
         auto shared_self = weak_self.lock();
         if (!shared_self) {
             return;
@@ -499,7 +513,8 @@ inline boost::future<wamp_call_result> wamp_session::call(
     return call->result().get_future();
 }
 
-inline boost::future<wamp_registration> wamp_session::provide(
+template <typename Executor>
+inline boost::future<wamp_registration> wamp_session<Executor>::provide(
         const std::string& name,
         const wamp_procedure& procedure,
         const provide_options& options)
@@ -515,7 +530,7 @@ inline boost::future<wamp_registration> wamp_session::provide(
     auto weak_self = std::weak_ptr<wamp_session>(this->shared_from_this());
     auto register_request = std::make_shared<wamp_register_request>(procedure);
 
-    boost::asio::dispatch(m_io_context, [this, weak_self, message, request_id, register_request]() {
+    boost::asio::dispatch(m_executor, [this, weak_self, message, request_id, register_request]() {
         auto shared_self = weak_self.lock();
         if (!shared_self) {
             return;
@@ -532,7 +547,8 @@ inline boost::future<wamp_registration> wamp_session::provide(
     return register_request->response().get_future();
 }
 
-inline boost::future<void> wamp_session::unprovide(const wamp_registration& registration)
+template <typename Executor>
+inline boost::future<void> wamp_session<Executor>::unprovide(const wamp_registration& registration)
 {
     uint64_t request_id = ++m_request_id;
 
@@ -544,7 +560,7 @@ inline boost::future<void> wamp_session::unprovide(const wamp_registration& regi
 	auto weak_self = std::weak_ptr<wamp_session>(this->shared_from_this());
 	auto unregister_request = std::make_shared<wamp_unregister_request>(registration);
 
-	boost::asio::dispatch(m_io_context, [this, weak_self, message, request_id, unregister_request]() {
+	boost::asio::dispatch(m_executor, [this, weak_self, message, request_id, unregister_request]() {
 		auto shared_self = weak_self.lock();
 		if (!shared_self) {
 			return;
@@ -562,7 +578,8 @@ inline boost::future<void> wamp_session::unprovide(const wamp_registration& regi
 	return unregister_request->response().get_future();
 }
 
-inline boost::future<wamp_authenticate> wamp_session::on_challenge(const wamp_challenge& /*challenge*/)
+template <typename Executor>
+inline boost::future<wamp_authenticate> wamp_session<Executor>::on_challenge(const wamp_challenge& /*challenge*/)
 {
     // a dummy implementation
     boost::promise<wamp_authenticate> dummy;
@@ -570,7 +587,8 @@ inline boost::future<wamp_authenticate> wamp_session::on_challenge(const wamp_ch
     return dummy.get_future();
 }
 
-inline void wamp_session::on_attach(const std::shared_ptr<wamp_transport>& transport)
+template <typename Executor>
+inline void wamp_session<Executor>::on_attach(const std::shared_ptr<wamp_transport>& transport)
 {
     // FIXME: We should be deferring this operation to the io context. This
     //        will almost certainly require us to return a future here to
@@ -588,7 +606,8 @@ inline void wamp_session::on_attach(const std::shared_ptr<wamp_transport>& trans
     m_transport = transport;
 }
 
-inline void wamp_session::on_detach(bool /*was_clean*/, const std::string& /*reason*/)
+template <typename Executor>
+inline void wamp_session<Executor>::on_detach(bool /*was_clean*/, const std::string& /*reason*/)
 {
     // FIXME: We should be deferring this operation to the io context. This
     //        will almost certainly require us to return a future here to
@@ -611,7 +630,8 @@ inline void wamp_session::on_detach(bool /*was_clean*/, const std::string& /*rea
     m_transport.reset();
 }
 
-inline void wamp_session::on_message(wamp_message&& message)
+template <typename Executor>
+inline void wamp_session<Executor>::on_message(wamp_message&& message)
 {
     // FIXME: Move this check into the transport
     //if (obj.type != msgpack::type::ARRAY) {
@@ -696,7 +716,8 @@ inline void wamp_session::on_message(wamp_message&& message)
     }
 }
 
-inline void wamp_session::process_challenge(wamp_message&& message)
+template <typename Executor>
+inline void wamp_session<Executor>::process_challenge(wamp_message&& message)
 {
     // kind of authentication
     std::string whatAuth = message.field<std::string>(1);
@@ -818,7 +839,7 @@ inline void wamp_session::process_challenge(wamp_message&& message)
             message->set_field(2, std::unordered_map<int, int>() /* No Extra/Dict */);
 
             auto weak_self = std::weak_ptr<wamp_session>(this->shared_from_this());
-            boost::asio::dispatch(m_io_context, [this, weak_self, message, context_response]() {
+            boost::asio::dispatch(m_executor, [this, weak_self, message, context_response]() {
                 auto shared_self = weak_self.lock();
                 if (!shared_self) {
                     return;
@@ -845,14 +866,16 @@ inline void wamp_session::process_challenge(wamp_message&& message)
     });
 }
 
-inline void wamp_session::process_welcome(wamp_message&& message)
+template <typename Executor>
+inline void wamp_session<Executor>::process_welcome(wamp_message&& message)
 {
     m_session_id = message.field<uint64_t>(1);
     message.field(2).convert(m_welcome_details);
     m_session_join.set_value(m_session_id);
 }
 
-inline void wamp_session::process_abort(wamp_message&& message)
+template <typename Executor>
+inline void wamp_session<Executor>::process_abort(wamp_message&& message)
 {
     // [ABORT, Details|dict, Reason|uri]
 
@@ -874,7 +897,8 @@ inline void wamp_session::process_abort(wamp_message&& message)
     m_session_join.set_exception(boost::copy_exception(abort_error(uri)));
 }
 
-inline void wamp_session::process_goodbye(wamp_message&& message)
+template <typename Executor>
+inline void wamp_session<Executor>::process_goodbye(wamp_message&& message)
 {
     m_session_id = 0;
 
@@ -896,7 +920,8 @@ inline void wamp_session::process_goodbye(wamp_message&& message)
     m_session_leave.set_value(reason);
 }
 
-inline void wamp_session::process_error(wamp_message&& message)
+template <typename Executor>
+inline void wamp_session<Executor>::process_error(wamp_message&& message)
 {
     // [ERROR, REQUEST.Type|int, REQUEST.Request|id, Details|dict, Error|uri]
     // [ERROR, REQUEST.Type|int, REQUEST.Request|id, Details|dict, Error|uri, Arguments|list]
@@ -1048,7 +1073,8 @@ inline void wamp_session::process_error(wamp_message&& message)
 }
 
 
-inline void wamp_session::process_invocation(wamp_message&& message)
+template <typename Executor>
+inline void wamp_session<Executor>::process_invocation(wamp_message&& message)
 {
     // [INVOCATION, Request|id, REGISTERED.Registration|id, Details|dict]
     // [INVOCATION, Request|id, REGISTERED.Registration|id, Details|dict, CALL.Arguments|list]
@@ -1104,7 +1130,7 @@ inline void wamp_session::process_invocation(wamp_message&& message)
             }
 
             // Send to the io_context thread, and make sure the session still exists (again).
-            boost::asio::dispatch(shared_this->m_io_context, [weak_this, message] {
+            boost::asio::dispatch(shared_this->m_executor, [weak_this, message] {
                 auto shared_this = weak_this.lock();
                 if (!shared_this) {
                     return; // FIXME: or throw exception?
@@ -1144,7 +1170,8 @@ inline void wamp_session::process_invocation(wamp_message&& message)
     }
 }
 
-inline void wamp_session::process_call_result(wamp_message&& message)
+template <typename Executor>
+inline void wamp_session<Executor>::process_call_result(wamp_message&& message)
 {
     // [RESULT, CALL.Request|id, Details|dict]
     // [RESULT, CALL.Request|id, Details|dict, YIELD.Arguments|list]
@@ -1186,7 +1213,8 @@ inline void wamp_session::process_call_result(wamp_message&& message)
     }
 }
 
-inline void wamp_session::process_subscribed(wamp_message&& message)
+template <typename Executor>
+inline void wamp_session<Executor>::process_subscribed(wamp_message&& message)
 {
     // [SUBSCRIBED, SUBSCRIBE.Request|id, Subscription|id]
     if (message.size() != 3) {
@@ -1214,7 +1242,8 @@ inline void wamp_session::process_subscribed(wamp_message&& message)
     }
 }
 
-inline void wamp_session::process_unsubscribed(wamp_message&& message)
+template <typename Executor>
+inline void wamp_session<Executor>::process_unsubscribed(wamp_message&& message)
 {
     // [UNSUBSCRIBED, UNSUBSCRIBE.Request|id]
     if (message.size() != 2) {
@@ -1237,7 +1266,8 @@ inline void wamp_session::process_unsubscribed(wamp_message&& message)
     }
 }
 
-inline void wamp_session::process_event(wamp_message&& message)
+template <typename Executor>
+inline void wamp_session<Executor>::process_event(wamp_message&& message)
 {
     // [EVENT, SUBSCRIBED.Subscription|id, PUBLISHED.Publication|id, Details|dict]
     // [EVENT, SUBSCRIBED.Subscription|id, PUBLISHED.Publication|id, Details|dict, PUBLISH.Arguments|list]
@@ -1308,7 +1338,8 @@ inline void wamp_session::process_event(wamp_message&& message)
     }
 }
 
-inline void wamp_session::process_registered(wamp_message&& message)
+template <typename Executor>
+inline void wamp_session<Executor>::process_registered(wamp_message&& message)
 {
     // [REGISTERED, REGISTER.Request|id, Registration|id]
 
@@ -1336,7 +1367,8 @@ inline void wamp_session::process_registered(wamp_message&& message)
     }
 }
 
-inline void wamp_session::process_unregistered(wamp_message&& message)
+template <typename Executor>
+inline void wamp_session<Executor>::process_unregistered(wamp_message&& message)
 {
     // [UNREGISTERED, UNREGISTER.Request|id]
     if (message.size() != 2) {
@@ -1359,7 +1391,8 @@ inline void wamp_session::process_unregistered(wamp_message&& message)
     }
 }
 
-inline void wamp_session::send_message(wamp_message&& message, bool session_established)
+template <typename Executor>
+inline void wamp_session<Executor>::send_message(wamp_message&& message, bool session_established)
 {
     if (!m_running) {
         throw protocol_error("session not running");
@@ -1380,7 +1413,8 @@ inline void wamp_session::send_message(wamp_message&& message, bool session_esta
     m_transport->send_message(std::move(message));
 }
 
-inline const std::unordered_map<std::string, msgpack::object>&  wamp_session::welcome_details()
+template <typename Executor>
+inline const std::unordered_map<std::string, msgpack::object>&  wamp_session<Executor>::welcome_details()
 {
     return m_welcome_details;
 }

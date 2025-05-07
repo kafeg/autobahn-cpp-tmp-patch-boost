@@ -32,6 +32,7 @@
 
 #include <openssl/evp.h>
 #include <autobahn/autobahn.hpp>
+#include <boost/asio/io_context.hpp>
 #include <utility>
 #include <autobahn/wamp_websocketpp_websocket_transport.hpp>
 #include <websocketpp/config/asio_no_tls_client.hpp>
@@ -54,7 +55,7 @@ void add2(autobahn::wamp_invocation invocation)
 }
 
 class auth_wamp_session :
-    public autobahn::wamp_session
+    public autobahn::wamp_session<boost::asio::io_context>
 {
 public:
   boost::promise<autobahn::wamp_authenticate> challenge_future;
@@ -64,7 +65,7 @@ public:
       boost::asio::io_context& io,
       bool debug_enabled,
       const std::vector<uint8_t>& private_key) :
-        autobahn::wamp_session(io, debug_enabled)
+        autobahn::wamp_session<boost::asio::io_context>(io, debug_enabled)
   {
       m_private_key = EVP_PKEY_new_raw_private_key( EVP_PKEY_ED25519, nullptr, (const unsigned char *)private_key.data(), private_key.size());
   }

@@ -43,17 +43,14 @@
 
 #include <boost/asio.hpp>
 
+#include <boost/asio/io_context.hpp>
 #include <msgpack/object.hpp>
 
 #include <cstdint>
-#include <functional>
-#include <istream>
-#include <ostream>
 #include <map>
 #include <memory>
-#include <stdexcept>
 #include <string>
-#include <utility>
+#include <unordered_map>
 #include <vector>
 
 #if defined(_WIN32) || defined(WIN32)
@@ -87,20 +84,24 @@ authorized subscribes to the topic.
  */
 
 /// Representation of a WAMP session.
+template <typename Executor = boost::asio::io_context>
 class wamp_session :
         public wamp_transport_handler,
-        public std::enable_shared_from_this<wamp_session>
+        public std::enable_shared_from_this<wamp_session<Executor>>
 {
 public:
 
     /*!
      * Create a new WAMP session.
      *
-     * \param io_context The io context to drive event dispatching.
+     * \param executor The executor to drive event dispatching.
      * \param debug_enabled Whether or not to run in debug mode.
+     * \note wamp_session is not threads safe and in case io_context::run()
+     *       is called in multiple threads a race may occur. In this case
+     *       boost::asio::strand<> could be used as an executor.
      */
     wamp_session(
-            boost::asio::io_context& io_context,
+            Executor& executor,
             bool debug_enabled = false);
 
     ~wamp_session() override;
@@ -338,7 +339,7 @@ private:
 
     bool m_debug_enabled;
 
-    boost::asio::io_context& m_io_context;
+    Executor& m_executor;
 
     // The transport this session runs on.
     std::shared_ptr<wamp_transport> m_transport;
